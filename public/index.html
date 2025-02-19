@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Code Compiler</title>
+    
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/theme/dracula.min.css">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .CodeMirror {
+            height: 250px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        pre {
+            background: #212529;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container text-center">
+    <h2 class="mb-3">Online Code Compiler</h2>
+    <p id="question" class="fw-bold"></p>
+    
+    <div class="mb-3">
+        <label for="language" class="form-label">Select Language:</label>
+        <select id="language" class="form-select">
+            <option value="python3">Python</option>
+            <option value="java">Java</option>
+            <option value="c">C</option>
+            <option value="cpp">C++</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <textarea id="code"></textarea>
+    </div>
+
+    <button class="btn btn-primary w-100" onclick="executeCode()">Run Code</button>
+
+    <h3 class="mt-4">Output:</h3>
+    <pre id="output" class="p-3">Waiting for output...</pre>
+</div>
+
+<!-- CodeMirror JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/mode/javascript/javascript.min.js"></script>
+
+<script>
+    const questions = [
+        "Write a program to print 'Hello, World!'.",
+        "Write a program to check if a number is even or odd.",
+        "Write a program to find the sum of two numbers.",
+        "Write a program to reverse a string.",
+        "Write a program to find the factorial of a number.",
+        "Write a program to check if a number is prime.",
+        "Write a program to find the largest number in an array.",
+        "Write a program to count vowels in a given string.",
+        "Write a program to generate the Fibonacci sequence.",
+        "Write a program to check if a string is a palindrome.",
+        "Write a program to swap two numbers without using a third variable.",
+        "Write a program to find the greatest common divisor (GCD) of two numbers.",
+        "Write a program to sort an array in ascending order.",
+        "Write a program to convert Celsius to Fahrenheit.",
+        "Write a program to check if a number is an Armstrong number.",
+        "Write a program to find the sum of digits of a number.",
+        "Write a program to check if a year is a leap year.",
+        "Write a program to merge two sorted arrays.",
+        "Write a program to count the occurrences of a character in a string.",
+        "Write a program to print the multiplication table of a given number."
+    ];
+
+    document.getElementById("question").textContent = "Question: " + questions[Math.floor(Math.random() * questions.length)];
+
+    // Initialize CodeMirror
+    const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        mode: "text/x-python", // Default mode is Python
+        theme: "dracula",
+        lineNumbers: true,
+        autoCloseBrackets: true,
+        matchBrackets: true,
+    });
+
+    // Function to execute code
+    async function executeCode() {
+        const code = editor.getValue();
+        const language = document.getElementById("language").value;
+        const outputElement = document.getElementById("output");
+
+        if (!code) {
+            alert("Please enter code to execute.");
+            return;
+        }
+
+        outputElement.textContent = "Running...";
+
+        try {
+            const response = await fetch("http://localhost:5000/execute", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ script: code, language: language }),
+            });
+
+            const result = await response.json();
+
+            if (result.error) {
+                outputElement.textContent = "Error: " + result.error;
+            } else {
+                outputElement.textContent = result.output || "No output received";
+            }
+        } catch (error) {
+            outputElement.textContent = "Error executing code.";
+            console.error("Error:", error);
+        }
+    }
+
+    // Change CodeMirror mode based on language selection
+    document.getElementById("language").addEventListener("change", function() {
+        const language = this.value;
+        let mode = "text/x-python"; // Default mode
+
+        if (language === "java") mode = "text/x-java";
+        else if (language === "c" || language === "cpp") mode = "text/x-csrc";
+
+        editor.setOption("mode", mode);
+    });
+</script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
